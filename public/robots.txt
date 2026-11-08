@@ -1,0 +1,11 @@
+# Sem acento de proposito: robots.txt e servido como text/plain sem charset, e
+# o navegador assume latin-1. Acento aqui aparece embaralhado na tela, e nao ha
+# como declarar charset neste arquivo.
+#
+# Esta base e a raiz de despertaresi.com.br, entao o robots.txt e o sitemap.xml
+# do dominio moram aqui. As paginas de fono e TO (outros repositorios) entram
+# no sitemap daqui, nao nos delas.
+User-agent: *
+Allow: /
+
+Sitemap: https://despertaresi.com.br/sitemap.xml
