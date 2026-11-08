@@ -6,12 +6,13 @@ import {
   type Element,
   type HTMLReactParserOptions,
 } from "html-react-parser";
-import htmlDoPacote from "../../conteudo/home.html";
+import htmlDoPacote from "../../conteudo/pagina.html";
+import { BASE_PATH, FOTO_PRINCIPAL as ARQUIVO_DA_FOTO_PRINCIPAL } from "@/lib/site";
 import BotaoFixo from "./BotaoFixo";
 import Formulario from "./Formulario";
 
 /**
- * A pagina e o HTML do pacote aprovado (conteudo/home.html), sem reescrever
+ * A pagina e o HTML do pacote aprovado (conteudo/pagina.html), sem reescrever
  * nada. Ele e lido no build e vira React; aqui so se troca o que no WordPress
  * dependia do Elementor ou de script solto:
  *
@@ -25,13 +26,16 @@ import Formulario from "./Formulario";
  * - as imagens apontam para /imagens/ em vez da biblioteca de midia do
  *   WordPress, e as que estao fora da primeira dobra carregam sob demanda.
  *
- * Pacote novo? Troque conteudo/home.html e conteudo/dsp-lp.css pelos novos e
+ * Pacote novo? Troque conteudo/pagina.html e conteudo/dsp-lp.css pelos novos e
  * confira se os ids acima continuam existindo.
  */
 
 const IMAGENS_NO_WORDPRESS = "/wp-content/uploads/2026/11/";
-const IMAGENS_AQUI = "/imagens/";
-const FOTO_PRINCIPAL = "/imagens/dsp-lp-home-mayara.webp";
+// O <img> do HTML nao ganha o basePath sozinho: o caminho vai escrito inteiro.
+const IMAGENS_AQUI = `${BASE_PATH}/imagens/`;
+const FOTO_PRINCIPAL = `${IMAGENS_AQUI}${ARQUIVO_DA_FOTO_PRINCIPAL}`;
+// Se o pacote vier sem botao de WhatsApp na confirmacao, a falha usa este.
+const WHATSAPP_PADRAO = "https://wa.me/5571993996613";
 
 /**
  * Elemento HTML (tag, script ou style), pelo formato do no. Nao usa
@@ -42,11 +46,11 @@ function ehElemento(no: DOMNode): no is Element {
   return "attribs" in no && "name" in no;
 }
 
-function encontrarPorId(nos: DOMNode[], id: string): Element | null {
+function encontrar(nos: DOMNode[], teste: (no: Element) => boolean): Element | null {
   for (const no of nos) {
     if (!ehElemento(no)) continue;
-    if (no.attribs.id === id) return no;
-    const achado = encontrarPorId(no.children as DOMNode[], id);
+    if (teste(no)) return no;
+    const achado = encontrar(no.children as DOMNode[], teste);
     if (achado) return achado;
   }
   return null;
@@ -82,7 +86,7 @@ export default function PaginaDoPacote() {
 
       switch (no.attribs.id) {
         case "dsp-form-slot":
-          return <Formulario confirmacao={confirmacao} />;
+          return <Formulario confirmacao={confirmacao} linkWhatsApp={linkWhatsApp} />;
         case "dsp-ok":
           return <></>; // vai dentro do <Formulario>
         case "dsp-fixo":
@@ -93,8 +97,12 @@ export default function PaginaDoPacote() {
     },
   };
 
-  const blocoOk = encontrarPorId(dom, "dsp-ok");
+  const blocoOk = encontrar(dom, (no) => no.attribs.id === "dsp-ok");
   const confirmacao = blocoOk ? domToReact(blocoOk.children as DOMNode[], opcoes) : null;
+  const botaoWhatsApp = blocoOk
+    ? encontrar(blocoOk.children as DOMNode[], (no) => (no.attribs.href ?? "").includes("wa.me/"))
+    : null;
+  const linkWhatsApp = botaoWhatsApp?.attribs.href ?? WHATSAPP_PADRAO;
 
   return <>{domToReact(dom, opcoes)}</>;
 }

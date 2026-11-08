@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   const lead: LeadEnviado = {
     nome: texto(corpo.nome, 120),
     whatsapp: texto(corpo.whatsapp, 40),
-    para_quem: texto(corpo.para_quem),
+    idade: texto(corpo.idade),
     quem_indicou: texto(corpo.quem_indicou),
   };
 
@@ -62,10 +62,10 @@ export async function POST(request: Request) {
   );
 
   const payload = {
-    pagina: NOME_DA_PAGINA, // nota do card no Kommo: "Home"
+    pagina: NOME_DA_PAGINA, // nota do card no Kommo ("Home", "LP Fono", "LP TO")
     nome: lead.nome,
     whatsapp: whatsappComDdi(lead.whatsapp),
-    para_quem: lead.para_quem,
+    idade: lead.idade, // campo "Idade da criança" no Kommo, nas tres paginas
     quem_indicou: lead.quem_indicou,
     ...rastreio,
     referrer: texto(r.referrer, 1000),

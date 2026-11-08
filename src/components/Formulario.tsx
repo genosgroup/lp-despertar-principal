@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent, type ReactNode } from "react";
 import { registrarContato, registrarLead } from "@/lib/conversao";
 import {
-  OPCOES_PARA_QUEM,
   OPCOES_QUEM_INDICOU,
+  PERGUNTA_IDADE,
   validarLead,
   type Campo,
   type ErrosDoLead,
@@ -12,36 +12,41 @@ import {
 } from "@/lib/lead";
 import { NOME_DA_PAGINA } from "@/lib/medicao";
 import { guardarRastreio, lerRastreio } from "@/lib/rastreio";
+import { ROTA_DO_LEAD } from "@/lib/site";
 
 /** id do campo na tela -> campo do lead */
 const IDS: Record<Campo, string> = {
   nome: "dsp-nome",
   whatsapp: "dsp-whats",
-  para_quem: "dsp-idade",
+  idade: "dsp-idade",
   quem_indicou: "dsp-indicou",
 };
 const CAMPO_DO_NAME: Record<string, Campo> = {
   nome: "nome",
   whatsapp: "whatsapp",
-  idade: "para_quem",
+  idade: "idade",
   indicou: "quem_indicou",
 };
-
-const WHATSAPP_FALHA =
-  "https://wa.me/5571993996613?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20saber%20mais%20sobre%20o%20atendimento%20da%20Despertar.";
 
 type Estado = "form" | "enviando" | "ok" | "falha";
 
 /**
  * O formulario da "Primeira conversa", com a mesma marcacao da previa
  * aprovada. No WordPress ele seria o formulario do Elementor encaixado no
- * cartao; aqui ele e proprio e envia para /api/lead.
+ * cartao; aqui ele e proprio e envia para a rota do lead.
  *
  * `confirmacao` e o bloco "Recebemos seu contato" do HTML do pacote, passado
  * pronto pelo servidor. Os cliques dentro dele (WhatsApp e "ver o formulario
- * de novo") sao tratados aqui por delegacao.
+ * de novo") sao tratados aqui por delegacao. `linkWhatsApp` e o link do botao
+ * dessa confirmacao, reaproveitado na mensagem de falha.
  */
-export default function Formulario({ confirmacao }: { confirmacao: ReactNode }) {
+export default function Formulario({
+  confirmacao,
+  linkWhatsApp,
+}: {
+  confirmacao: ReactNode;
+  linkWhatsApp: string;
+}) {
   const [estado, setEstado] = useState<Estado>("form");
   const [erros, setErros] = useState<ErrosDoLead>({});
   const okRef = useRef<HTMLDivElement>(null);
@@ -67,7 +72,7 @@ export default function Formulario({ confirmacao }: { confirmacao: ReactNode }) 
     const lead: LeadEnviado = {
       nome: String(dados.get("nome") ?? "").trim(),
       whatsapp: String(dados.get("whatsapp") ?? "").trim(),
-      para_quem: String(dados.get("idade") ?? ""),
+      idade: String(dados.get("idade") ?? ""),
       quem_indicou: String(dados.get("indicou") ?? ""),
       empresa: String(dados.get("empresa") ?? ""),
       rastreio: lerRastreio(),
@@ -83,7 +88,7 @@ export default function Formulario({ confirmacao }: { confirmacao: ReactNode }) 
 
     setEstado("enviando");
     try {
-      const resposta = await fetch("/api/lead", {
+      const resposta = await fetch(ROTA_DO_LEAD, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(lead),
@@ -159,14 +164,14 @@ export default function Formulario({ confirmacao }: { confirmacao: ReactNode }) 
           {erroDe("whatsapp")}
         </div>
         <div className="dsp-lp-campo">
-          <label htmlFor="dsp-idade">Para quem é o atendimento?</label>
-          <select id="dsp-idade" name="idade" defaultValue="" {...ariaDe("para_quem")}>
+          <label htmlFor="dsp-idade">{PERGUNTA_IDADE.rotulo}</label>
+          <select id="dsp-idade" name="idade" defaultValue="" {...ariaDe("idade")}>
             <option value="">Escolha</option>
-            {OPCOES_PARA_QUEM.map((o) => (
+            {PERGUNTA_IDADE.opcoes.map((o) => (
               <option key={o}>{o}</option>
             ))}
           </select>
-          {erroDe("para_quem")}
+          {erroDe("idade")}
         </div>
         <div className="dsp-lp-campo">
           <label htmlFor="dsp-indicou">
@@ -188,7 +193,7 @@ export default function Formulario({ confirmacao }: { confirmacao: ReactNode }) 
           <p className="dsp-lp-form__falha" role="alert">
             Não conseguimos enviar agora. Tente de novo em instantes ou{" "}
             <a
-              href={WHATSAPP_FALHA}
+              href={linkWhatsApp}
               target="_blank"
               rel="noopener"
               onClick={() => registrarContato(NOME_DA_PAGINA)}

@@ -4,16 +4,25 @@
  * igual.
  */
 
-/** Opcoes do pacote aprovado (LEIA-ME, item 5 da montagem). */
-export const OPCOES_PARA_QUEM = [
-  "Criança até 2 anos",
-  "Criança de 2 a 4",
-  "Criança de 5 a 7",
-  "Criança de 8 a 12",
-  "Adolescente",
-  "Adulto",
-  "Idoso",
-] as const;
+/**
+ * A pergunta de idade. Vai para um campo so no Kommo, "Idade da criança", nas
+ * tres paginas; o que muda e o texto. Na principal a pergunta e "Para quem e o
+ * atendimento?", porque la tambem vem adulto e idoso. Opcoes do pacote aprovado
+ * (LEIA-ME, item 5 da montagem).
+ */
+export const PERGUNTA_IDADE = {
+  rotulo: "Para quem é o atendimento?",
+  erro: "Escolha para quem é o atendimento.",
+  opcoes: [
+    "Criança até 2 anos",
+    "Criança de 2 a 4",
+    "Criança de 5 a 7",
+    "Criança de 8 a 12",
+    "Adolescente",
+    "Adulto",
+    "Idoso",
+  ],
+} as const;
 
 export const OPCOES_QUEM_INDICOU = [
   "Escola",
@@ -49,14 +58,15 @@ export type Rastreio = Partial<Record<ParametroDeRastreio, string>> & {
 export type LeadEnviado = {
   nome: string;
   whatsapp: string;
-  para_quem: string;
+  /** Resposta da PERGUNTA_IDADE. */
+  idade: string;
   quem_indicou: string;
   /** Campo-isca: gente nao preenche, robo preenche. */
   empresa?: string;
   rastreio?: Rastreio;
 };
 
-export type Campo = "nome" | "whatsapp" | "para_quem" | "quem_indicou";
+export type Campo = "nome" | "whatsapp" | "idade" | "quem_indicou";
 export type ErrosDoLead = Partial<Record<Campo, string>>;
 
 /** So os digitos do telefone. */
@@ -85,12 +95,12 @@ export function validarLead(lead: Partial<LeadEnviado>): ErrosDoLead {
     erros.whatsapp = "Confira o WhatsApp, com DDD. Ex.: (71) 9 0000-0000";
   }
 
-  if (!OPCOES_PARA_QUEM.includes(lead.para_quem as (typeof OPCOES_PARA_QUEM)[number])) {
-    erros.para_quem = "Escolha para quem é o atendimento.";
+  if (!(PERGUNTA_IDADE.opcoes as readonly string[]).includes(lead.idade ?? "")) {
+    erros.idade = PERGUNTA_IDADE.erro;
   }
 
   const indicou = lead.quem_indicou ?? "";
-  if (indicou && !OPCOES_QUEM_INDICOU.includes(indicou as (typeof OPCOES_QUEM_INDICOU)[number])) {
+  if (indicou && !(OPCOES_QUEM_INDICOU as readonly string[]).includes(indicou)) {
     erros.quem_indicou = "Escolha uma das opções.";
   }
   return erros;

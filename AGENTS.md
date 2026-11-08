@@ -55,6 +55,13 @@ Os IDs ficam todos em `src/lib/medicao.ts`. Vazio = desligado.
 O site antigo (WordPress) media tudo pelo `GTM-MDXF8NKB`. Esta base não usa GTM: as tags e
 as conversões estão no código, como manda o padrão (§1.6 e §4.1).
 
+Esta base é a raiz do domínio, então o `robots.txt` e o `sitemap.xml` de
+`despertaresi.com.br` moram aqui (e listam fono e TO). Ela é irmã de
+`lp-despertar-fonoaudiologia` e `lp-despertar-terapiaocupacional`, servidas sob caminho:
+os componentes são os mesmos, e o que muda fica em `src/lib/site.ts`, `src/lib/medicao.ts`,
+na pergunta de idade de `src/lib/lead.ts` e no pacote em `conteudo/`. Mudou um componente
+aqui? Leve a mudança para as outras duas.
+
 O HTML e o CSS da página vêm do pacote aprovado e ficam em `conteudo/`, sem edição à mão.
 Para mudar texto, troque o pacote inteiro. Detalhes no `README.md`.
 

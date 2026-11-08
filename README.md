@@ -36,12 +36,14 @@ preencha `LEAD_WEBHOOK_URL`.
 
 | Arquivo | O que é |
 | --- | --- |
-| `conteudo/home.html` e `conteudo/dsp-lp.css` | O HTML e o CSS do pacote, **idênticos ao aprovado**. Não edite à mão |
+| `conteudo/pagina.html` e `conteudo/dsp-lp.css` | O HTML (o `home.html` do pacote) e o CSS, **idênticos ao aprovado**. Não edite à mão |
 | `public/imagens/` | As 11 imagens do pacote que a home usa, com os nomes originais (as de fono e TO ficam nos repositórios delas) |
 | `src/components/PaginaDoPacote.tsx` | Transforma o HTML do pacote na página e troca só o que dependia do WordPress |
 | `src/components/Formulario.tsx` | O formulário "Primeira conversa", com a marcação da prévia aprovada |
 | `src/components/BotaoFixo.tsx` | O botão fixo do celular, que some no topo e no formulário |
 | `src/app/api/lead/route.ts` | Recebe o lead, valida e repassa para o destino |
+| `src/lib/site.ts` | O que muda de uma página da Despertar para outra: caminho, endereço, foto do topo |
+| `src/lib/lead.ts` | Campos, opções e validação do formulário (a pergunta de idade muda por página) |
 | `src/lib/medicao.ts` | **Todos os IDs de medição**, num lugar só. Vazio = desligado |
 | `src/lib/conversao.ts` | Os eventos de Lead e Contato |
 | `src/components/Tracking.tsx` | As tags (Google, Meta e Clarity), montadas no layout raiz |
@@ -51,7 +53,7 @@ preencha `LEAD_WEBHOOK_URL`.
 
 ### Pacote novo
 
-1. Troque `conteudo/home.html` e `conteudo/dsp-lp.css` pelos novos e as imagens em
+1. Troque `conteudo/pagina.html` (o `home.html` do pacote) e `conteudo/dsp-lp.css` pelos novos e as imagens em
    `public/imagens/`.
 2. Confira se os ids `dsp-form-slot`, `dsp-ok` e `dsp-fixo` continuam no HTML. É neles
    que o formulário e o botão fixo se encaixam.
@@ -95,7 +97,7 @@ rota `/api/lead` só repassa o lead, num JSON plano, para `LEAD_WEBHOOK_URL`:
   "pagina": "Home",
   "nome": "Maria",
   "whatsapp": "5571999990000",
-  "para_quem": "Criança de 2 a 4",
+  "idade": "Criança de 2 a 4",
   "quem_indicou": "Pediatra ou neuropediatra",
   "utm_source": "google",
   "utm_medium": "cpc",
@@ -110,11 +112,15 @@ rota `/api/lead` só repassa o lead, num JSON plano, para `LEAD_WEBHOOK_URL`:
 }
 ```
 
-- `pagina` é a nota do card no Kommo ("Home").
+- `pagina` é a nota do card no Kommo ("Home"; em fono é "LP Fono" e em TO, "LP TO").
+- `idade` vai para o campo **"Idade da criança"** do Kommo, o mesmo nas três páginas,
+  como diz a tarefa. Aqui a pergunta é "Para quem é o atendimento?", porque a principal
+  também atende adulto e idoso. Esse campo **ainda não existe** no Kommo e precisa ser
+  criado.
+- O JSON é o mesmo nas três páginas, então um destino só recebe as três.
 - O WhatsApp já vai com o 55 na frente.
 - Os nomes das UTMs, do gclid e do fbclid são os dos campos de rastreio que já existem no
-  Kommo da Despertar. "Quem indicou?" também já existe. "Para quem é o atendimento?"
-  **ainda não existe** no Kommo e precisa ser criado.
+  Kommo da Despertar. "Quem indicou?" também já existe.
 
 **Sem `LEAD_WEBHOOK_URL` o formulário não finge que enviou.** A rota responde erro, a
 página mostra "Não conseguimos enviar agora" com o link do WhatsApp, e nenhuma conversão
@@ -130,7 +136,7 @@ página mostra "Não conseguimos enviar agora" com o link do WhatsApp, e nenhuma
 
 - [ ] **GA4:** criar a propriedade da Despertar e preencher `GA_ID` em `src/lib/medicao.ts`.
 - [ ] **Destino do lead:** decidir e configurar `LEAD_WEBHOOK_URL`. Criar no Kommo o campo
-      "Para quem é o atendimento?".
+      "Idade da criança".
 - [ ] **Hospedagem e deploy:** ainda não configurados. A home divide o domínio com o
       WordPress (a /lp1 continua lá até a troca), então a rota precisa servir só `/` e os
       arquivos desta base (`/imagens/`, `/_next/`, `/api/lead`, `/robots.txt`,
