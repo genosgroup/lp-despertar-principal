@@ -29,8 +29,9 @@ npm run dev
 npm run build && npm run lint
 ```
 
-Para testar o envio do formulário localmente, copie `.env.example` para `.env.local` e
-preencha `LEAD_WEBHOOK_URL`.
+Em `npm run dev` o formulário **não** manda lead para o n8n, para ninguém criar card de
+teste no Kommo sem querer. Para testar o envio, copie `.env.example` para `.env.local` e
+aponte `LEAD_WEBHOOK_URL` para um webhook de teste.
 
 ## Onde está cada coisa
 
@@ -41,7 +42,7 @@ preencha `LEAD_WEBHOOK_URL`.
 | `src/components/PaginaDoPacote.tsx` | Transforma o HTML do pacote na página e troca só o que dependia do WordPress |
 | `src/components/Formulario.tsx` | O formulário "Primeira conversa", com a marcação da prévia aprovada |
 | `src/components/BotaoFixo.tsx` | O botão fixo do celular, que some no topo e no formulário |
-| `src/app/api/lead/route.ts` | Recebe o lead, valida e repassa para o destino |
+| `src/app/api/lead/route.ts` | Recebe o lead, valida e repassa para o webhook do n8n |
 | `src/lib/site.ts` | O que muda de uma página da Despertar para outra: caminho, endereço, foto do topo |
 | `src/lib/lead.ts` | Campos, opções e validação do formulário (a pergunta de idade muda por página) |
 | `src/lib/medicao.ts` | **Todos os IDs de medição**, num lugar só. Vazio = desligado |
@@ -89,8 +90,11 @@ visita (utm_source, utm_medium, utm_campaign, utm_content, utm_term, gclid e fbc
 o referrer e a URL de chegada. A origem fica guardada na sessão, então quem chega com UTM,
 passa pela página de fono e volta não perde a origem.
 
-**O destino do lead ainda não está decidido** (Kommo direto, n8n ou outro). Por isso a
-rota `/api/lead` só repassa o lead, num JSON plano, para `LEAD_WEBHOOK_URL`:
+O lead vai para uma **automação no n8n**, que cria o card no Kommo. A rota `/api/lead`
+repassa o lead, num JSON plano, para o webhook desta página
+(`https://webhook.automacaogenosgroup.com.br/webhook/despertar-lp-principal`, em
+`src/lib/site.ts`). Fono e TO têm o seu, terminando em `despertar-lp-fono` e
+`despertar-lp-to`. O JSON:
 
 ```json
 {
@@ -117,25 +121,33 @@ rota `/api/lead` só repassa o lead, num JSON plano, para `LEAD_WEBHOOK_URL`:
   como diz a tarefa. Aqui a pergunta é "Para quem é o atendimento?", porque a principal
   também atende adulto e idoso. Esse campo **ainda não existe** no Kommo e precisa ser
   criado.
-- O JSON é o mesmo nas três páginas, então um destino só recebe as três.
+- O JSON é o mesmo nas três páginas, então a automação trata as três do mesmo jeito.
 - O WhatsApp já vai com o 55 na frente.
 - Os nomes das UTMs, do gclid e do fbclid são os dos campos de rastreio que já existem no
   Kommo da Despertar. "Quem indicou?" também já existe.
 
-**Sem `LEAD_WEBHOOK_URL` o formulário não finge que enviou.** A rota responde erro, a
+**Se o envio falhar, o formulário não finge que enviou.** A rota responde erro, a
 página mostra "Não conseguimos enviar agora" com o link do WhatsApp, e nenhuma conversão
-é contada. Para trocar o destino (chamar a API do Kommo direto, por exemplo), mexa só em
+é contada. Para trocar o destino, mexa em `src/lib/site.ts` e
 `src/app/api/lead/route.ts`.
 
 | Variável | Para quê |
 | --- | --- |
-| `LEAD_WEBHOOK_URL` | Para onde o lead vai (POST JSON). Segredo no painel da hospedagem |
-| `LEAD_WEBHOOK_TOKEN` | Opcional. Vai como `Authorization: Bearer ...` |
+| `LEAD_WEBHOOK_URL` | Opcional. Troca o destino (um webhook de teste, por exemplo). Sem ela, vale o webhook de `src/lib/site.ts` |
+| `LEAD_WEBHOOK_TOKEN` | Opcional. Vai como `Authorization: Bearer ...`. É o que vai proteger o webhook (ver abaixo). Segredo no painel da hospedagem |
+
+**O webhook ainda não está protegido.** O endereço está escrito no código, e este
+repositório é público: quem o encontrar consegue mandar lead falso para o n8n e, de lá,
+para o Kommo. A proteção prevista é ligar a autenticação por cabeçalho no nó de webhook do
+n8n e pôr a mesma senha como segredo `LEAD_WEBHOOK_TOKEN` na hospedagem. O código já manda
+o cabeçalho quando a variável existe.
+
 
 ## Antes de ir ao ar
 
 - [ ] **GA4:** criar a propriedade da Despertar e preencher `GA_ID` em `src/lib/medicao.ts`.
-- [ ] **Destino do lead:** decidir e configurar `LEAD_WEBHOOK_URL`. Criar no Kommo o campo
+- [ ] **Automação do n8n:** montar os três webhooks (`despertar-lp-principal`, `-fono`,
+      `-to`) e proteger com autenticação por cabeçalho + `LEAD_WEBHOOK_TOKEN`. Criar no Kommo o campo
       "Idade da criança".
 - [ ] **Hospedagem e deploy:** ainda não configurados. A home divide o domínio com o
       WordPress (a /lp1 continua lá até a troca), então a rota precisa servir só `/` e os
