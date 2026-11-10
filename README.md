@@ -77,7 +77,9 @@ da Despertar. A página vai como **arquivos estáticos**, sem Node: o LiteSpeed 
 arquivos direto, e o único pedaço dinâmico, o envio do lead, é um PHP pequeno.
 
 **Como publicar:** em **Actions > Publicar na Turbo Cloud > Run workflow**. A automação
-roda `npm run build` e envia o `out/` por SSH com `hospedagem/publicar.sh`. Por enquanto
+roda `npm run build` e envia o `out/` por FTPS com `hospedagem/publicar.sh`, que confere,
+pelo tamanho, se cada arquivo chegou inteiro (o que não bater é reenviado uma vez; se
+ainda não bater, a publicação para com erro). Por enquanto
 ela só roda quando alguém dispara; depois da estreia, ela pode passar a rodar a cada push
 no `main`.
 
@@ -91,9 +93,10 @@ no `main`.
 - o `.htaccess` da raiz, que é do WordPress, só ganha o bloco de
   `hospedagem/htaccess-raiz.conf`, no topo, entre as marcas
   `# BEGIN/END Despertar LP principal`. É ele que faz o `/` abrir a home nova
-  (`DirectoryIndex index.html index.php`). O resto do arquivo não é tocado, uma cópia vai
-  para `~/despertar-lp-publicacao/backup-htaccess` (fora da pasta pública, 10 mais
-  recentes) e o bloco só é aplicado depois de todos os arquivos estarem no lugar;
+  (`DirectoryIndex index.html index.php`). O resto do arquivo não é tocado, a versão anterior
+  fica na raiz como `.htaccess.despertar-backup-<data>` (nome começado por `.ht`, que o
+  servidor não entrega pela web; ficam as 10 mais recentes, e só quando o arquivo muda) e
+  o bloco só é aplicado depois de todos os arquivos estarem no lugar;
 - todo endereço que não é arquivo nem pasta desta página continua indo para o WordPress:
   /lp1, as páginas antigas, o painel.
 
@@ -105,22 +108,27 @@ repositórios da Despertar):
 
 | Segredo | O que é |
 | --- | --- |
-| `DESPERTAR_SSH_KEY` | Chave privada gerada no cPanel (Acesso SSH > Gerenciar chaves), com as linhas BEGIN/END |
-| `DESPERTAR_SSH_PASSPHRASE` | A senha da chave. O cPanel não gera chave sem senha; a automação tira a senha só na máquina temporária do GitHub |
-| `DESPERTAR_SSH_HOST` | O servidor (`br.brasil105-9070.com.br`) |
-| `DESPERTAR_SSH_USER` | O usuário do cPanel |
-| `DESPERTAR_SSH_PORT` | A porta SSH (pode ser variável em vez de segredo; sem ela, 22) |
+| `DESPERTAR_SSH_HOST` | O servidor (`br.brasil105-9070.com.br`). O nome ficou do plano com SSH; se preferir, crie `DESPERTAR_FTP_HOST`, que tem prioridade |
+| `DESPERTAR_FTP_USER` | O usuário da conta FTP criada no cPanel (Contas FTP), com a pasta `public_html` como raiz |
+| `DESPERTAR_FTP_PASSWORD` | A senha dessa conta FTP |
 
-Se a raiz do site não for `public_html`, crie a variável `DESPERTAR_RAIZ`.
+Porta diferente de 21? Crie a variável `DESPERTAR_FTP_PORT`.
+
+**Por que FTPS e não SSH.** O firewall da Turbo Cloud não deixa as máquinas do GitHub
+entrarem por SSH (a porta não responde), e a 21 responde. A conexão é sempre
+criptografada (FTP com TLS, com o certificado do servidor conferido): se o servidor não
+aceitar TLS, nada é enviado. A conta FTP só enxerga a `public_html`, então a publicação
+não alcança o `.despertar-lp.php`, que fica fora dela.
 
 **Testar a conexão:** **Actions > Testar conexão com a Turbo Cloud > Run workflow**
-entra no servidor, confere rsync, PHP, a raiz do site e o que já existe nela, e não
-publica nada. O log mostra só sim/não, sem listar arquivos, porque o log de um
+entra por FTPS, confere o certificado, a raiz do site, o que já existe nela e se dá para
+gravar (com um arquivo de teste apagado na hora), e não publica nada. O log mostra só sim/não, sem listar arquivos, porque o log de um
 repositório público é público.
 
-O caminho inteiro (chave com senha, SSH, rsync, `.htaccess`, convivência com um
-WordPress, envio do lead pelo PHP) foi testado num servidor local montado como o da
-Turbo Cloud antes da primeira publicação.
+O caminho inteiro (FTPS com TLS obrigatório, conferência dos arquivos, `.htaccess`,
+convivência com um WordPress, envio do lead pelo PHP) foi testado num servidor local
+montado como o da Turbo Cloud (Pure-FTPd, o FTP padrão do cPanel) antes da primeira
+publicação.
 
 ## Medição
 
