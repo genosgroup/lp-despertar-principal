@@ -7,6 +7,9 @@ import type { MetadataRoute } from "next";
  */
 const BASE = "https://despertaresi.com.br";
 
+// Exportacao estatica: o sitemap vira um arquivo sitemap.xml no build.
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${BASE}/`, changeFrequency: "monthly", priority: 1 },
