@@ -5,7 +5,11 @@
 # Esta base e a raiz de despertaresi.com.br, entao o robots.txt e o sitemap.xml
 # do dominio moram aqui. As paginas de fono e TO (outros repositorios) entram
 # no sitemap daqui, nao nos delas.
+#
+# O WordPress continua na mesma raiz (painel, /links, /lp1): o bloqueio do
+# /wp-admin/ e o mesmo que o robots.txt dele tinha.
 User-agent: *
-Allow: /
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
 
 Sitemap: https://despertaresi.com.br/sitemap.xml
