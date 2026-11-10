@@ -223,11 +223,13 @@ nem fica acessível pela web, e vale para as três páginas.
 ## Antes de ir ao ar
 
 - [ ] **GA4:** criar a propriedade da Despertar e preencher `GA_ID` em `src/lib/medicao.ts`.
-- [ ] **Automação do n8n:** montar os três webhooks (`despertar-lp-principal`, `-fono`,
-      `-to`) e protegê-los (ver acima). Criar no Kommo o campo "Idade da criança".
-- [ ] **Publicar a home só depois do n8n pronto:** publicar substitui a home do
-      WordPress na hora, e sem o webhook todo visitante veria o formulário falhar.
-- [ ] **Sitemap:** lista fono e TO, que precisam estar no ar junto.
+- [x] **Automação do n8n:** os três webhooks (`despertar-lp-principal`, `-fono`, `-to`)
+      estão no fluxo "[Rastreamento] Rastreamento Google | LP | Kommo", com uma linha cada
+      na Data Table `[Kommo] Formulários`. Testado em 10/11 nas três páginas, com e sem UTM.
+      No Kommo, "Idade da criança" foi criado e "Quem indicou?" já existia.
+- [ ] **Proteger o webhook** (ver acima): primeiro o `.despertar-lp.php` no cPanel, depois
+      o Header Auth nos três nós do n8n. Na ordem inversa, os leads falham no meio.
+- [x] **Home publicada** em 10/11, com fono e TO já no ar (o sitemap lista as três).
 - [ ] **Parte 4 do [checklist](https://github.com/genosgroup/padroes/blob/main/checklist-lp.md):**
       lead de teste real pelo celular (card no Kommo com nota, origem e os campos novos),
       conversão no Google Ads, Lead no Meta Pixel Helper, PageSpeed no celular.
