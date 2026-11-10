@@ -81,9 +81,10 @@ roda `npm run build` e envia o `out/` por FTPS com `hospedagem/publicar.sh`, que
 pelo tamanho, se cada arquivo chegou inteiro (o que não bater é reenviado uma vez; se
 ainda não bater, a publicação para com erro). A ordem evita página quebrada durante a
 troca: primeiro os arquivos novos (js, css, imagens), depois as páginas, e só no fim a
-limpeza dos antigos. Por enquanto
-ela só roda quando alguém dispara; depois da estreia, ela pode passar a rodar a cada push
-no `main`.
+limpeza dos antigos. Ela **só roda
+quando alguém dispara**, de propósito: publicar a home troca a home do WordPress, então
+isso fica como decisão de alguém, não efeito colateral de um push. (Fono e TO publicam
+sozinhas a cada push no `main`.)
 
 **Convivência com o WordPress.** A home divide a raiz do site (`public_html`) com ele:
 

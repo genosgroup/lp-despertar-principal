@@ -1,8 +1,9 @@
 name: Publicar na Turbo Cloud
 
 # Gera a página (npm run build -> out/) e envia por FTPS para a hospedagem, com
-# hospedagem/publicar.sh, que confere pelo tamanho cada arquivo enviado. Por
-# enquanto só roda quando alguém dispara: Actions > "Publicar na Turbo Cloud" > Run workflow.
+# hospedagem/publicar.sh, que confere pelo tamanho cada arquivo enviado. Só roda
+# quando alguém dispara (Actions > "Publicar na Turbo Cloud" > Run workflow), de
+# propósito: publicar a home troca a home do WordPress. Não ligue o push aqui.
 on:
   workflow_dispatch:
 
