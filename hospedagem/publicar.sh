@@ -7,8 +7,8 @@
 #
 # A home divide a raiz com o WordPress. Por isso:
 # - so as pastas que sao dela (_next, imagens, api/lead) sao espelhadas, com os
-#   arquivos antigos apagados; na raiz, os arquivos dela sao enviados por cima,
-#   sem apagar nada;
+#   arquivos antigos apagados (por ultimo, depois das paginas novas no lugar); na
+#   raiz, os arquivos dela sao enviados por cima, sem apagar nada;
 # - trava de seguranca: se alguma dessas pastas ja existir sem ter sido criada
 #   por esta publicacao (sem o arquivo-marca), nada e enviado;
 # - o .htaccess do WordPress so ganha o bloco de hospedagem/htaccess-raiz.conf,
@@ -34,11 +34,17 @@ done
 for d in _next imagens api/lead; do touch "out/$d/$MARCA"; done
 cp hospedagem/htaccess-next.conf out/_next/.htaccess
 
-ftp_espelhar out/_next/ _next/ --delete
-ftp_espelhar out/imagens/ imagens/ --delete
+# Primeiro o que as paginas usam, depois as paginas da raiz, e so no fim a
+# limpeza do que saiu do pacote: assim ninguem abre uma pagina nova sem os
+# arquivos dela, nem uma antiga com os arquivos dela ja apagados.
+ftp_enviar out/_next/ _next/
+ftp_enviar out/imagens/ imagens/
 ftp_lftp "mkdir -p -f api"
-ftp_espelhar out/api/lead/ api/lead/ --delete
-ftp_espelhar out/ ./ -x ^_next/ -x ^imagens/ -x ^api/
+ftp_enviar out/api/lead/ api/lead/
+ftp_enviar out/ ./ -x ^_next/ -x ^imagens/ -x ^api/
+ftp_limpar out/_next/ _next/
+ftp_limpar out/imagens/ imagens/
+ftp_limpar out/api/lead/ api/lead/
 echo "Arquivos da home enviados e conferidos."
 
 # .htaccess da raiz: baixa, aplica o bloco, e so sobe se mudou.

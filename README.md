@@ -79,7 +79,9 @@ arquivos direto, e o único pedaço dinâmico, o envio do lead, é um PHP pequen
 **Como publicar:** em **Actions > Publicar na Turbo Cloud > Run workflow**. A automação
 roda `npm run build` e envia o `out/` por FTPS com `hospedagem/publicar.sh`, que confere,
 pelo tamanho, se cada arquivo chegou inteiro (o que não bater é reenviado uma vez; se
-ainda não bater, a publicação para com erro). Por enquanto
+ainda não bater, a publicação para com erro). A ordem evita página quebrada durante a
+troca: primeiro os arquivos novos (js, css, imagens), depois as páginas, e só no fim a
+limpeza dos antigos. Por enquanto
 ela só roda quando alguém dispara; depois da estreia, ela pode passar a rodar a cada push
 no `main`.
 
